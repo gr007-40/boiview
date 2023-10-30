@@ -1,13 +1,13 @@
 //------------------------------------------------------------------------------
-//  qoiview.c
+//  boiview.c
 //
-//  qoiview file=[image.qoi]
+//  boiview file=[image.boi]
 //
-//  Or drag'n'drop a .qoi file into the view window.
+//  Or drag'n'drop a .boi file into the view window.
 //------------------------------------------------------------------------------
-#define QOI_IMPLEMENTATION
-#define QOI_NO_STDIO
-#include "qoi.h"
+#define BOI_IMPLEMENTATION
+#define BOI_NO_STDIO
+#include "boi.h"
 #define SOKOL_IMPL
 #if defined(__APPLE__)
 #define SOKOL_METAL
@@ -51,7 +51,7 @@ static struct {
     } checkerboard;
     struct {
         sfetch_error_t error;
-        bool qoi_decode_failed;
+        bool boi_decode_failed;
         uint8_t buf[MAX_FILE_SIZE];
     } file;
 } state;
@@ -82,26 +82,26 @@ static void move(float dx, float dy) {
 
 static void create_image(const void* ptr, size_t size) {
     reset_image_params();
-    state.file.qoi_decode_failed = false;
+    state.file.boi_decode_failed = false;
     if (state.image.img.id != SG_INVALID_ID) {
         sg_destroy_image(state.image.img);
         state.image.img.id = SG_INVALID_ID;
     }
-    qoi_desc qoi;
-    void* pixels = qoi_decode(ptr, (int)size, &qoi, 4);
+    boi_desc boi;
+    void* pixels = boi_decode(ptr, (int)size, &boi, 4);
     if (!pixels) {
-        state.file.qoi_decode_failed = true;
+        state.file.boi_decode_failed = true;
         return;
     }
-    state.image.width = (float) qoi.width;
-    state.image.height = (float) qoi.height;
+    state.image.width = (float) boi.width;
+    state.image.height = (float) boi.height;
     state.image.img = sg_make_image(&(sg_image_desc){
         .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .width = qoi.width,
-        .height = qoi.height,
+        .width = boi.width,
+        .height = boi.height,
         .data.subimage[0][0] = {
             .ptr = pixels,
-            .size = qoi.width * qoi.height * 4
+            .size = boi.width * boi.height * 4
         }
     });
     free(pixels);
@@ -160,8 +160,8 @@ static void start_load_dropped_file(void) {
 }
 
 static const char* error_as_string(void) {
-    if (state.file.qoi_decode_failed) {
-        return "Not a valid .qoi file (decoding failed)";
+    if (state.file.boi_decode_failed) {
+        return "Not a valid .boi file (decoding failed)";
     }
     else switch (state.file.error) {
         case SFETCH_ERROR_FILE_NOT_FOUND: return "File not found";
@@ -274,10 +274,10 @@ static void frame(void) {
         // draw instructions
         sdtx_canvas(disp_w * 0.5f, disp_h * 0.5f);
         sdtx_origin(2.0f, 2.0f);
-        if ((state.file.error != SFETCH_ERROR_NO_ERROR) || (state.file.qoi_decode_failed)) {
+        if ((state.file.error != SFETCH_ERROR_NO_ERROR) || (state.file.boi_decode_failed)) {
             sdtx_printf("ERROR: %s\n\n\n", error_as_string());
         }
-        sdtx_printf("Drag'n'drop .qoi image into window\n\n\n"
+        sdtx_printf("Drag'n'drop .boi image into window\n\n\n"
                     "LMB: drag image\n\n"
                     "Wheel: zoom image\n\n"
                     "1,2,3: RGB channels on/off\n\n"
@@ -355,7 +355,7 @@ sapp_desc sokol_main(int argc, char* argv[]) {
         .cleanup_cb = cleanup,
         .width = 800,
         .height = 600,
-        .window_title = "qoiview",
+        .window_title = "boiview",
         .enable_dragndrop = true,
         .icon.sokol_default = true,
         .logger.func = slog_func,
